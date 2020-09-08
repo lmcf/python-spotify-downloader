@@ -1,8 +1,5 @@
 import enquiries
-import sys
 import os
-import getpass
-import fcntl
 
 # Const
 ln = '\n'
