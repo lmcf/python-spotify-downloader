@@ -2,77 +2,100 @@ import enquiries
 import sys
 import os
 import getpass
+import fcntl
 
-options = [
-    'Track - By Name', 
-    'Track - By Spotify URL', 
-    'Track - By Youtube Link',
-    'PlayList - By Playlist URL',
-    'PlayList - By Album URL',
-    'All albums - By Artist URL']
+# Const
+ln = '\n'
 
-choice = enquiries.choose('Choose one of these options: ', options)
+# Functions
+def descargar_lista(params,types = None, url_or_name = None):
+    command_song = 'spotdl '
 
-print('\n',choice)
+    print(url_or_name)
 
+    if types is not None:
+        if types < 3:   
+            url_or_name = url_or_name.split(",")
+            for song in url_or_name:
+                command_song += params[0]+' "'+song+'" '
+            print(command_song + ln)
+            os.popen(command_song).read()
+            input('Press Enter to continue..')
 
-def descargar_lista(param, songs = None):
-    print('\n')
-    command_song = ' spotdl '
+        if 2 < types:
+            if url_or_name is not None:
+                command_song += params[types] + url_or_name + params[2]
+                print(command_song + ln)
+                os.popen(command_song).read()
+                descargar_lista(params,types)
+            
+            if url_or_name is None:
+                command_song += params[1]
+                print(command_song + ln)
+                os.popen(command_song).read()
+                os.remove('songs_list.txt')
+                input('Press Enter to continue..')
+                types = None   
    
-    if param == ' --song ':   
-        songs = songs.split(",")
-        for song in songs:
-            command_song += ' "'+song+'" '
 
-    if param != ' --song ':
-        if songs is not None:
-            command_song += param[0] + songs + param[2]
-        if songs is None:
-            command_song += param[1]
-    
-    print(command_song)
-    stream = os.popen(command_song)
-    output = stream.read()
-    print(output)
+def print_and_return(value):
+    print(value)
+    return value
 
-if choice == options[0]:
-    print('\n Can also accept multiple tracks separated by commas')
-    songs = input('\n EX: soundtrack champions league, ritmo, waka waka \n ')
-    parametros = [' --song ']
-    descargar_lista(parametros, songs)
+# Arrays info
+options = [
+        'Track - By Name', 
+        'Track - By Spotify URL ', 
+        'Track - By Youtube Link',
+        'PlayList - By Playlist URL ',
+        'Album - By Album URL ',
+        'All albums - By Artist URL ',
+        'Exit']
 
-if choice == options[1]:
-    print('\n You can copy this URI from your Spotify desktop or mobile app by right clicking or long tap on the song and copy HTTP link.')
-    songs = input('\n EX: https://open.spotify.com/track/2lfPecqFbH8X4lHSpTxt8l \n ')
-    parametros = [' --song ']
-    descargar_lista(parametros, songs)
+helpInfo  = [
+        'Can also accept multiple tracks separated by commas.',
+        'You can copy this URI from your Spotify desktop or mobile app by right clicking or long tap on the song and copy HTTP link.',
+        'You can copy the YouTube URL  or ID of a video.',
+        'You can copy the Spotify URI of the playlist.',
+        'You can copy the Spotify URI of the album.',
+        'You can copy the Spotify URI of the artis to get all albums.']
 
-if choice == options[2]:
-    print('\n You can copy the YouTube URL or ID of a video')
-    songs = input('\n EX: https://www.youtube.com/watch?v=lc4Tt-CU-i0 \n ')
-    parametros = [' --song ']
-    descargar_lista(parametros, songs)
+examples = [
+        'EX: Dance Monkey, Whine Up, Roxanne (separated by commas)',
+        'EX: https://open.spotify.com/track/2lfPecqFbH8X4lHSpTxt8l',
+        'EX: https://www.youtube.com/watch?v=lc4Tt-CU-i0',
+        'EX: https://open.spotify.com/user/nocopyrightsounds/playlist/7sZbq8QGyMnhKPcLJvCUFD',
+        'EX: https://open.spotify.com/album/499J8bIsEnU7DSrosFDJJg',
+        'EX: https://open.spotify.com/artist/1feoGrmmD8QmNqtK2Gdwy8']
 
-if choice == options[3]:
-    print('\n You can copy the Spotify URI of the playlist')
-    songs = input('\n EX: https://open.spotify.com/user/nocopyrightsounds/playlist/7sZbq8QGyMnhKPcLJvCUFD \n ')
-    parametros = [' --playlist ' , ' --list=songs.txt ', ' --write-to=songs.txt ']
-    descargar_lista(parametros, songs)
+params = [
+    ' --overwrite skip --song ',
+    ' --overwrite skip --list=songs_list.txt ',
+    ' --write-to=songs_list.txt ',
+    ' --playlist ',
+    ' --overwrite force --album ',
+    ' --overwrite force --all-albums ']
 
-if choice == options[4]:
-    print('\n You can copy the Spotify URI of the album')
-    songs = input('\n EX: https://open.spotify.com/album/499J8bIsEnU7DSrosFDJJg \n ')
-    parametros = [' --album ' , ' --list=songs.txt ', ' --write-to=songs.txt ']
-    descargar_lista(parametros, songs)
 
-if choice == options[5]:
-    print('\n You can copy the Spotify URI of the artis to get all albums')
-    songs = input('\n EX: https://open.spotify.com/artist/1feoGrmmD8QmNqtK2Gdwy8 \n ')
-    parametros = [' --all-albums ' , ' --list=songs.txt ', ' --write-to=songs.txt ']
-    descargar_lista(parametros, songs)
+# Main
+while True:
 
-if choice == options[3] or choice == options[4] or choice == options[5]:
-    descargar_lista(parametros)
+    #Clean console
+    print(os.popen('clear').read())
+    # Menu
+    choice = print_and_return(enquiries.choose('Choose one of these options: ', options))
+    for option in options:
+        if option == choice:
+            choice = options.index(option)
 
-exit()
+    # Exit or Print options and actions
+    if choice == 6 : quit()
+    print(helpInfo[choice])
+    print(examples[choice] + ln)
+    descargar_lista(params,choice, input(' -> '))
+
+
+
+
+       
+
